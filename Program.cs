@@ -37,11 +37,11 @@ try
         };
     });
     builder.Services.AddScoped<IAccount, Account>();
-    builder.Services.AddScoped<IAccountService, AccountService>();
-    builder.Services.AddScoped(sp => new HttpClient
-    {
-        BaseAddress = new Uri(builder.Configuration["BaseAppUri"]!)
-    });
+    //builder.Services.AddScoped<IAccountService, AccountService>();
+    //builder.Services.AddScoped(sp => new HttpClient
+    //{
+    //    BaseAddress = new Uri(builder.Configuration["BaseAppUri"]!)
+    //});
 
     var app = builder.Build();
 

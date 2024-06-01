@@ -38,7 +38,7 @@ namespace JwtApi.Repositories
             if (!BCrypt.Net.BCrypt.Verify(model.Password, findUser.Password))
                 return new LoginResponse(false, "Invalid credentials.");
 
-            string jwtToken = GenerateToken(findUser);
+            string jwtToken = GenerateAccessToken(findUser);
             return new LoginResponse(true, "Login success.", jwtToken);
         }
 
@@ -75,12 +75,13 @@ namespace JwtApi.Repositories
             return new RegistrationResponse(true, "Registration success.");
         }
 
+        // this is not implemented
         public async Task<RegistrationResponse> ConfirmEmail(string email, string confirmToken)
         {
-            var user = await GetUser(email);
-            if (user == null || user.EmailConfirmationToken != confirmToken)
-                return new RegistrationResponse(false, "Unsuccessful.");
-            user.IsEmailConfirmed = true;
+            //var user = await GetUser(email);
+            //if (user == null || user.EmailConfirmationToken != confirmToken)
+            //    return new RegistrationResponse(false, "Unsuccessful.");
+            //user.IsEmailConfirmed = true;
 
             // await appDbContext.SaveChangesAsync();
             return new RegistrationResponse(true, "Email confirmed.");
@@ -108,33 +109,12 @@ namespace JwtApi.Repositories
                     Email = reader.GetString(2),
                     Role = reader.GetString(3),
                     Password = reader.GetString(4),
-                    EmailConfirmationToken = reader.GetString(5),
-                    IsEmailConfirmed = reader.GetBoolean(6)
+                    IsEmailConfirmed = reader.GetBoolean(5)
                 };
                 result = user;
             }
             await _connection.CloseAsync();
             return result;
-        }
-
-        private string GenerateToken(ApplicationUser user)
-        {
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-            var userClaims = new[]
-            {
-                new Claim(ClaimTypes.Name, user.Name!),
-                new Claim(ClaimTypes.Email, user.Email!),
-                new Claim(ClaimTypes.Role, user.Role!)
-            };
-            var token = new JwtSecurityToken(
-                issuer: _config["Jwt:Issuer"]!,
-                audience: _config["Jwt:Audience"]!,
-                claims: userClaims,
-                expires: DateTime.Now.AddMinutes(10),
-                signingCredentials: credentials
-            );
-            return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
         public void LogoutAsync()
@@ -158,28 +138,6 @@ namespace JwtApi.Repositories
             //return new LoginResponse(true, "New token.", newToken);
             return new LoginResponse(true, "New token.", "newToken");
         }
-
-        private string GenerateRefreshToken()
-        {
-            var randomNumber = new byte[32];
-            using (var rng = RandomNumberGenerator.Create())
-            {
-                rng.GetBytes(randomNumber);
-                return Convert.ToBase64String(randomNumber);
-            }
-        }
-
-        //public async Task<RegistrationResponse> TestChangePassword()
-        //{
-        //    var res = await ChangePassword(new ChangePwdDTO
-        //    {
-        //        Email = "user@example.com",
-        //        CurrentPassword = "12345",
-        //        NewPassword = "newPwd",
-        //        ConfirmNewPassword = "newPwd"
-        //    });
-        //    return res;
-        //}
 
         public async Task<RegistrationResponse> ChangePassword(ChangePwdDTO model)
         {
@@ -205,6 +163,36 @@ namespace JwtApi.Repositories
             }
             await _connection.CloseAsync();
             return new RegistrationResponse(true, "Password changed.");
+        }
+
+        private string GenerateAccessToken(ApplicationUser user)
+        {
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+            var userClaims = new[]
+            {
+                new Claim(ClaimTypes.Name, user.Name!),
+                new Claim(ClaimTypes.Email, user.Email!),
+                new Claim(ClaimTypes.Role, user.Role!)
+            };
+            var token = new JwtSecurityToken(
+                issuer: _config["Jwt:Issuer"]!,
+                audience: _config["Jwt:Audience"]!,
+                claims: userClaims,
+                expires: DateTime.Now.AddMinutes(10),
+                signingCredentials: credentials
+            );
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        private string GenerateRefreshToken()
+        {
+            var randomNumber = new byte[32];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(randomNumber);
+                return Convert.ToBase64String(randomNumber);
+            }
         }
 
         // should remove the email address and password from source code

@@ -35,7 +35,7 @@ namespace JwtApi.Controllers
 
         [HttpPost("refresh-token")]
         [AllowAnonymous]
-        public ActionResult<LoginResponse> RefreshToken(UserSession model)
+        public ActionResult<LoginResponse> RefreshToken()
         {
             //var result = accountRepo.RefreshToken(model);
             //return Ok(result);
