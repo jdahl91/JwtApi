@@ -1,10 +1,8 @@
 using JwtApi.Repositories;
-using JwtApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using System.Text;
-using static JwtApi.Responses.CustomResponses;
 
 try
 {
@@ -37,11 +35,6 @@ try
         };
     });
     builder.Services.AddScoped<IAccount, Account>();
-    //builder.Services.AddScoped<IAccountService, AccountService>();
-    //builder.Services.AddScoped(sp => new HttpClient
-    //{
-    //    BaseAddress = new Uri(builder.Configuration["BaseAppUri"]!)
-    //});
 
     var app = builder.Build();
 
@@ -63,17 +56,6 @@ try
         var service = scope.ServiceProvider.GetRequiredService<IAccount>();
         await service.SeedAdminUser();
     }
-
-    //System.Diagnostics.Debug.WriteLine("Entering TestChangePassword().");
-    //using (var scope = app.Services.CreateScope())
-    //{
-    //    var service = scope.ServiceProvider.GetRequiredService<IAccount>();
-    //    var res = await service.TestChangePassword();
-        
-    //    System.Diagnostics.Debug.WriteLine(res.Message);
-    //}
-    //System.Diagnostics.Debug.WriteLine("Exiting TestChangePassword().");
-
     app.Run();
 }
 catch (Exception ex)

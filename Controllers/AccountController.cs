@@ -17,37 +17,60 @@ namespace JwtApi.Controllers
             _account = account;
         }
 
-        [HttpPost("register")]
         [AllowAnonymous]
+        [HttpPost("register")]
         public async Task<ActionResult<RegistrationResponse>> RegisterAsync(RegisterDTO model)
         {
             var result = await _account.RegisterAsync(model);
             return Ok(result);
         }
 
-        [HttpPost("login")]
         [AllowAnonymous]
+        [HttpPost("login")]
         public async Task<ActionResult<LoginResponse>> LoginAsync(LoginDTO model)
         {
             var result = await _account.LoginAsync(model);
             return Ok(result);
         }
 
-        [HttpPost("refresh-token")]
-        [AllowAnonymous]
-        public ActionResult<LoginResponse> RefreshToken()
+        [Authorize(Roles = "User, Admin")]
+        [HttpPost("logout")]
+        public async Task<ActionResult<RegistrationResponse>> LogoutAsync()
         {
-            //var result = accountRepo.RefreshToken(model);
-            //return Ok(result);
-            return Ok();
+            string? authorizationHeader = HttpContext.Request.Headers.Authorization;
+            string? expiredAccessToken = null;
+
+            if (!string.IsNullOrEmpty(authorizationHeader) && authorizationHeader.StartsWith("Bearer "))
+            {
+                expiredAccessToken = authorizationHeader.Substring("Bearer ".Length).Trim();
+            }
+            var result = await _account.LogoutAsync(expiredAccessToken!); // dangerous ! here -- may need revisiting
+            return Ok(result);
+        }
+
+        [AllowAnonymous]
+        [HttpPost("refresh-token")]
+        public async Task<ActionResult<LoginResponse>> RefreshToken(string refreshToken)
+        {
+            // string authorizationHeader = HttpContext.Request.Headers["Authorization"];
+            string? authorizationHeader = HttpContext.Request.Headers.Authorization;
+            string? expiredAccessToken = null;
+
+            if (!string.IsNullOrEmpty(authorizationHeader) && authorizationHeader.StartsWith("Bearer "))
+            {
+                // Extract the token from the Authorization header
+                expiredAccessToken = authorizationHeader.Substring("Bearer ".Length).Trim();
+            }
+            var result = await _account.ObtainNewAccessToken(expiredAccessToken!, refreshToken);
+            return Ok(result);
         }
 
         // be aware this method is not async as of now
-        [HttpPost("confirm-email")]
         [AllowAnonymous]
-        public ActionResult<RegistrationResponse> ConfirmEmail(string email, string confirmToken)
+        [HttpPost("confirm-email")]
+        public async Task<ActionResult<RegistrationResponse>> ConfirmEmail([FromQuery] string email, [FromQuery] string confirmToken)
         {
-            var result = _account.ConfirmEmail(email, confirmToken);
+            var result = await _account.ConfirmEmail(email, confirmToken);
             return Ok(result);
         }
 

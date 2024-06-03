@@ -7,11 +7,10 @@ namespace JwtApi.Repositories
     {
         Task<RegistrationResponse> RegisterAsync(RegisterDTO model);
         Task<LoginResponse> LoginAsync(LoginDTO model);
-        void LogoutAsync();
-        LoginResponse ObtainNewAccessToken();
+        Task<RegistrationResponse> LogoutAsync(string expiredAccessToken);
+        Task<LoginResponse> ObtainNewAccessToken(string expiredAccessToken, string refreshToken);
         Task<RegistrationResponse> ConfirmEmail(string email, string confirmToken);
         Task<RegistrationResponse> ChangePassword(ChangePwdDTO model);
         Task SeedAdminUser();
-        // RegistrationResponse TestChangePassword();
     }
 }
