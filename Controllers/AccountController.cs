@@ -50,7 +50,7 @@ namespace JwtApi.Controllers
 
         [AllowAnonymous]
         [HttpPost("refresh-token")]
-        public async Task<ActionResult<LoginResponse>> RefreshToken(string refreshToken)
+        public async Task<ActionResult<LoginResponse>> RefreshToken([FromBody] string refreshToken)
         {
             // string authorizationHeader = HttpContext.Request.Headers["Authorization"];
             string? authorizationHeader = HttpContext.Request.Headers.Authorization;
