@@ -35,6 +35,7 @@ try
         };
     });
     builder.Services.AddScoped<IAccount, Account>();
+    builder.Services.AddScoped<IPasswordRepository, PasswordRepository>();
 
     var app = builder.Build();
 

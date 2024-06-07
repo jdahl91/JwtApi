@@ -195,7 +195,7 @@ namespace JwtApi.Repositories
             await _connection.CloseAsync();
         }
 
-        private async Task<ApplicationUser?> GetUser(string email)
+        public async Task<ApplicationUser?> GetUser(string email)
         {
             await _connection.OpenAsync();
             using var cmd = new NpgsqlCommand("SELECT * FROM users WHERE email=@Email", _connection);

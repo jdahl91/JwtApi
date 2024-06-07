@@ -1,4 +1,5 @@
 using JwtApi.DTOs;
+using JwtApi.Models;
 using static JwtApi.Responses.CustomResponses;
 
 namespace JwtApi.Repositories
@@ -12,5 +13,6 @@ namespace JwtApi.Repositories
         Task<RegistrationResponse> ConfirmEmail(string email, string confirmToken);
         Task<RegistrationResponse> ChangePassword(ChangePwdDTO model);
         Task SeedAdminUser();
+        Task<ApplicationUser?> GetUser(string email);
     }
 }
