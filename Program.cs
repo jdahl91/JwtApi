@@ -13,7 +13,7 @@ try
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
-    var connectionString = "Host=localhost;Database=PwdMngr;Username=postgres;Password=dbpwdpsqljd24";
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
     builder.Services.AddScoped<NpgsqlConnection>(_ => new NpgsqlConnection(connectionString));
 
     builder.Services.AddAuthentication(options =>
