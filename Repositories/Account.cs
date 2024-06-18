@@ -63,7 +63,7 @@ namespace JwtApi.Repositories
                     command.Parameters.AddWithValue("@Role", "User");
                     command.Parameters.AddWithValue("@Password", BCrypt.Net.BCrypt.HashPassword(model.Password));
                     command.Parameters.AddWithValue("@EmailConfirmationToken", BCrypt.Net.BCrypt.HashPassword(model.Email));
-                    command.Parameters.AddWithValue("@IsEmailConfirmed", true); // this needs to be false once we have an email service
+                    command.Parameters.AddWithValue("@IsEmailConfirmed", false); // until email service is set up users can request access to the site
                     await command.ExecuteNonQueryAsync();
                 }
                 await _connection.CloseAsync();
