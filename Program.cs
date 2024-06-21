@@ -8,21 +8,20 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
     
-    // May need this but lets try without it first
-    // builder.Configuration.AddEnvironmentVariables();
-
     // Add services to the container.
     builder.Services.AddControllers();
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     //builder.Services.AddEndpointsApiExplorer();
     //builder.Services.AddSwaggerGen();
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-    builder.Services.AddScoped<NpgsqlConnection>(_ => new NpgsqlConnection(connectionString));
+    // builder.Configuration.AddEnvironmentVariables();
 
-    //var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY"); // builder.Configuration["Jwt:Key"];
-    //var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER"); // builder.Configuration["Jwt:Issuer"];
-    //var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE"); // builder.Configuration["Jwt:Audience"];
-    
+    // var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+    var jwtKey = Environment.GetEnvironmentVariable("Jwt__Key"); // builder.Configuration["Jwt:Key"];
+    var jwtIssuer = Environment.GetEnvironmentVariable("Jwt__Issuer"); // builder.Configuration["Jwt:Issuer"];
+    var jwtAudience = Environment.GetEnvironmentVariable("Jwt__Audience"); // builder.Configuration["Jwt:Audience"];
+
+    builder.Services.AddScoped<NpgsqlConnection>(_ => new NpgsqlConnection(connectionString));
     builder.Services.AddAuthentication(options =>
     {
         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -36,9 +35,9 @@ try
             ValidateAudience = true,
             ValidateIssuerSigningKey = true,
             ValidateLifetime = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+            ValidIssuer = jwtIssuer, // builder.Configuration["Jwt:Issuer"],
+            ValidAudience = jwtAudience, // builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey!)) // builder.Configuration["Jwt:Key"]
         };
     });
     builder.Services.AddScoped<IAccount, Account>();
@@ -59,18 +58,18 @@ try
 
     app.MapControllers();
 
-    using (var scope = app.Services.CreateScope())
-    {
-        var service = scope.ServiceProvider.GetRequiredService<IAccount>();
-        await service.SeedAdminUser();
-    }
+    //using (var scope = app.Services.CreateScope())
+    //{
+    //    var service = scope.ServiceProvider.GetRequiredService<IAccount>();
+    //    await service.SeedAdminUser();
+    //}
     app.Run();
 }
 catch (Exception ex)
 {
-    System.Diagnostics.Debug.WriteLine(ex.Message);
+    Console.WriteLine("Error: " + ex.Message);
 }
 finally
 {
-    System.Diagnostics.Debug.WriteLine("Goodbye.");
+    Console.WriteLine("Goodbye.");
 }
