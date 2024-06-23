@@ -6,6 +6,7 @@ using System.Text;
 
 try
 {
+    Console.WriteLine("Launching Web API.");
     var builder = WebApplication.CreateBuilder(args);
     
     // Add services to the container.
@@ -71,5 +72,5 @@ catch (Exception ex)
 }
 finally
 {
-    Console.WriteLine("Goodbye.");
+    Console.WriteLine("\nGoodbye.");
 }

@@ -26,7 +26,6 @@ namespace JwtApi.Repositories
         }
 
         // We can set up a background service to delete expired tokens and no longer needed tokens from refreshtokens table and emailconfirmtokens table
-
         public async Task<LoginResponse> LoginAsync(LoginDTO model)
         {
             var findUser = await GetUser(model.Email);
@@ -54,7 +53,7 @@ namespace JwtApi.Repositories
             try
             {
                 await _connection.OpenAsync();
-                var cmd = $"INSERT INTO Users (Name, Email, Role, Password, EmailConfirmationToken, IsEmailConfirmed) VALUES (@Name, @Email, @Role, @Password, @EmailConfirmationToken, @IsEmailConfirmed);";
+                var cmd = $"INSERT INTO Users (Name, Email, Role, Password, IsEmailConfirmed) VALUES (@Name, @Email, @Role, @Password, @IsEmailConfirmed);";
 
                 using (var command = new NpgsqlCommand(cmd, _connection))
                 {
@@ -62,7 +61,7 @@ namespace JwtApi.Repositories
                     command.Parameters.AddWithValue("@Email", model.Email);
                     command.Parameters.AddWithValue("@Role", "User");
                     command.Parameters.AddWithValue("@Password", BCrypt.Net.BCrypt.HashPassword(model.Password));
-                    command.Parameters.AddWithValue("@EmailConfirmationToken", BCrypt.Net.BCrypt.HashPassword(model.Email));
+                    // command.Parameters.AddWithValue("@EmailConfirmationToken", BCrypt.Net.BCrypt.HashPassword(model.Email));
                     command.Parameters.AddWithValue("@IsEmailConfirmed", false); // until email service is set up users can request access to the site
                     await command.ExecuteNonQueryAsync();
                 }
@@ -180,7 +179,7 @@ namespace JwtApi.Repositories
             if (findUser != null) return;
 
             await _connection.OpenAsync();
-            var cmd = $"INSERT INTO Users (Name, Email, Role, Password, EmailConfirmationToken, IsEmailConfirmed) VALUES (@Name, @Email, @Role, @Password, @EmailConfirmationToken, @IsEmailConfirmed);";
+            var cmd = $"INSERT INTO Users (Name, Email, Role, Password, IsEmailConfirmed) VALUES (@Name, @Email, @Role, @Password, @IsEmailConfirmed);";
 
             using (var command = new NpgsqlCommand(cmd, _connection))
             {
@@ -188,7 +187,7 @@ namespace JwtApi.Repositories
                 command.Parameters.AddWithValue("@Email", "joakimdahl@gmx.us");
                 command.Parameters.AddWithValue("@Role", "Admin");
                 command.Parameters.AddWithValue("@Password", BCrypt.Net.BCrypt.HashPassword("1234"));
-                command.Parameters.AddWithValue("@EmailConfirmationToken", BCrypt.Net.BCrypt.HashPassword("joakimdahl@gmx.us"));
+                // command.Parameters.AddWithValue("@EmailConfirmationToken", BCrypt.Net.BCrypt.HashPassword("joakimdahl@gmx.us"));
                 command.Parameters.AddWithValue("@IsEmailConfirmed", true);
                 await command.ExecuteNonQueryAsync();
             }
