@@ -43,7 +43,14 @@ try
     });
     builder.Services.AddScoped<IAccount, Account>();
     builder.Services.AddScoped<IPasswordRepository, PasswordRepository>();
-    
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowBlazorWasmClient", builder =>
+        {
+            builder.WithOrigins("https://localhost:7282").AllowAnyHeader().AllowAnyMethod();  // Blazor WASM app origin
+        });
+    });
+
     var app = builder.Build();
 
     // Configure the HTTP request pipeline.
@@ -54,6 +61,7 @@ try
     //}
 
     app.UseHttpsRedirection();
+    app.UseCors("AllowBlazorWasmClient");
     app.UseAuthentication();
     app.UseAuthorization();
 
