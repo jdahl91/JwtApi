@@ -12,5 +12,7 @@ namespace JwtApi.DTOs
         public string NewPassword { get; set; } = string.Empty;
         [Required, Compare(nameof(NewPassword)), DataType(DataType.Password)]
         public string ConfirmNewPassword { get; set; } = string.Empty;
+        [Required]
+        public Guid UserId { get; set; }
     }
 }

@@ -47,7 +47,7 @@ namespace JwtApi.Repositories
         public async Task<RegistrationResponse> RegisterAsync(RegisterDTO model)
         {
             var findUser = await GetUser(model.Email);
-            if (findUser is not null) 
+            if (findUser is not null)
                 return new RegistrationResponse(false, "User already exists.");
 
             try
@@ -61,8 +61,8 @@ namespace JwtApi.Repositories
                     command.Parameters.AddWithValue("@Email", model.Email);
                     command.Parameters.AddWithValue("@Role", "User");
                     command.Parameters.AddWithValue("@Password", BCrypt.Net.BCrypt.HashPassword(model.Password));
-                    // command.Parameters.AddWithValue("@EmailConfirmationToken", BCrypt.Net.BCrypt.HashPassword(model.Email));
-                    command.Parameters.AddWithValue("@IsEmailConfirmed", false); // until email service is set up users can request access to the site
+                    // until email service is set up users can request access to the site
+                    command.Parameters.AddWithValue("@IsEmailConfirmed", false);
                     await command.ExecuteNonQueryAsync();
                 }
                 await _connection.CloseAsync();
@@ -71,10 +71,11 @@ namespace JwtApi.Repositories
             {
                 return new RegistrationResponse(false, "Unsuccessful.");
             }
+            // This can be uncommented when email service is implemented
             var emailConfirmToken = GenerateEmailConfirmationToken();
             await InsertEmailConfirmTokenIntoDb(model.Email, emailConfirmToken);
 
-            // Need to fix email service in order to authenticate accounts
+            // Need to set up email service in order to authenticate accounts
             // await emailService.SendConfirmationEmail(model.Email, model.Name, confirmToken);
 
             return new RegistrationResponse(true, "Registration success.");
@@ -158,40 +159,19 @@ namespace JwtApi.Repositories
             if (model.NewPassword != model.ConfirmNewPassword)
                 return new RegistrationResponse(false, "Passwords do not match.");
 
-            var sql = $"UPDATE Users SET Password = @NewPassword WHERE Email = @Email;";
+            var sql = $"UPDATE Users SET Password = @NewPassword WHERE Email = @Email AND Id = @UserId;";
 
             await _connection.OpenAsync();
             using (var cmd = new NpgsqlCommand(sql, _connection))
             {
                 cmd.Parameters.AddWithValue("@NewPassword", BCrypt.Net.BCrypt.HashPassword(model.NewPassword));
                 cmd.Parameters.AddWithValue("@Email", model.Email);
+                cmd.Parameters.AddWithValue("@UserId", model.UserId);
 
                 await cmd.ExecuteNonQueryAsync();
             }
             await _connection.CloseAsync();
             return new RegistrationResponse(true, "Password changed.");
-        }
-
-        // should remove the email address and password from source code
-        public async Task SeedAdminUser()
-        {
-            var findUser = await GetUser("joakimdahl@gmx.us");
-            if (findUser != null) return;
-
-            await _connection.OpenAsync();
-            var cmd = $"INSERT INTO Users (Name, Email, Role, Password, IsEmailConfirmed) VALUES (@Name, @Email, @Role, @Password, @IsEmailConfirmed);";
-
-            using (var command = new NpgsqlCommand(cmd, _connection))
-            {
-                command.Parameters.AddWithValue("@Name", "Joakim");
-                command.Parameters.AddWithValue("@Email", "joakimdahl@gmx.us");
-                command.Parameters.AddWithValue("@Role", "Admin");
-                command.Parameters.AddWithValue("@Password", BCrypt.Net.BCrypt.HashPassword("1234"));
-                // command.Parameters.AddWithValue("@EmailConfirmationToken", BCrypt.Net.BCrypt.HashPassword("joakimdahl@gmx.us"));
-                command.Parameters.AddWithValue("@IsEmailConfirmed", true);
-                await command.ExecuteNonQueryAsync();
-            }
-            await _connection.CloseAsync();
         }
 
         public async Task<ApplicationUser?> GetUser(string email)
@@ -212,7 +192,7 @@ namespace JwtApi.Repositories
             {
                 var user = new ApplicationUser
                 {
-                    Id = reader.GetInt32(0),
+                    Id = reader.GetGuid(0),
                     Name = reader.GetString(1),
                     Email = reader.GetString(2),
                     Role = reader.GetString(3),
@@ -278,8 +258,8 @@ namespace JwtApi.Repositories
             var findUser = await GetUser(email);
             if (findUser is null) return false;
 
-            var sql1 = "INSERT INTO refreshtokens (token, userid, expirydate) VALUES (@Token, (SELECT id FROM users WHERE email=@Email), NOW() + INTERVAL '10 days');";
-            var sql2 = "INSERT INTO refreshtokens (token, userid, expirydate) VALUES (@Token, (SELECT id FROM users WHERE email = @Email), NOW() + INTERVAL '10 days') ON CONFLICT (userid) DO UPDATE SET token = EXCLUDED.token, expirydate = EXCLUDED.expirydate;";
+            var sql1 = "INSERT INTO refreshtokens (token, userid) VALUES (@Token, (SELECT id FROM users WHERE email=@Email));";
+            var sql2 = "INSERT INTO refreshtokens (token, userid) VALUES (@Token, (SELECT id FROM users WHERE email = @Email)) ON CONFLICT (userid) DO UPDATE SET token = EXCLUDED.token;";
             var sql = reinsert ? sql2 : sql1;
 
             try
@@ -309,7 +289,7 @@ namespace JwtApi.Repositories
             var findUser = await GetUser(email);
             if (findUser is null) return false;
 
-            var sql = "INSERT INTO emailconfirmtokens (token, userid, expirydate) VALUES (@Token, (SELECT id FROM users WHERE email=@Email), NOW() + INTERVAL '10 days');";
+            var sql = "INSERT INTO emailconfirmtokens (token, userid) VALUES (@Token, (SELECT id FROM users WHERE email=@Email));";
 
             try
             {
@@ -353,17 +333,15 @@ namespace JwtApi.Repositories
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        private string GenerateRefreshToken()
+        private static string GenerateRefreshToken()
         {
             var randomNumber = new byte[32];
-            using (var rng = RandomNumberGenerator.Create())
-            {
-                rng.GetBytes(randomNumber);
-                return Convert.ToBase64String(randomNumber);
-            }
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomNumber);
+            return Convert.ToBase64String(randomNumber);
         }
 
-        private string GenerateEmailConfirmationToken()
+        private static string GenerateEmailConfirmationToken()
         {
             return GenerateRefreshToken();
         }

@@ -18,12 +18,11 @@ namespace JwtApi.Controllers
             _passwordRepository = passwordRepository;
         }
 
-
         [Authorize(Roles = "User, Admin")]
         [HttpPost("get-all")]
-        public async Task<ActionResult<GetAllPasswordsApiResonse>> GetPasswordEntriesAsync([FromBody] string email)
+        public async Task<ActionResult<GetAllPasswordsApiResponse>> GetPasswordEntriesAsync(GetAllPasswordsDTO form)
         {
-            var result = await _passwordRepository.GetPasswordEntriesAsync(email);
+            var result = await _passwordRepository.GetPasswordEntriesAsync(form);
             return Ok(result);
         }
 

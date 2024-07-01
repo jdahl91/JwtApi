@@ -3,6 +3,12 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+# Ignore Data Protection Keys
+/keys/
+
+# Ignore Windows specific deployment files
+/Properties/
+
 # User-specific files
 *.rsuser
 *.suo

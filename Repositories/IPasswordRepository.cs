@@ -7,7 +7,7 @@ namespace JwtApi.Repositories
 {
     public interface IPasswordRepository
     {
-        Task<ActionResult<GetAllPasswordsApiResonse>> GetPasswordEntriesAsync(string email);
+        Task<ActionResult<GetAllPasswordsApiResponse>> GetPasswordEntriesAsync(GetAllPasswordsDTO form);
         Task<ActionResult<ApiResponse>> InsertPasswordEntryAsync(NewPasswordEntryDTO entry);
         Task<ActionResult<ApiResponse>> UpdatePasswordEntryAsync(PasswordEntry entry);
     }
