@@ -8,6 +8,7 @@ using System.Security.Principal;
 using System.Reflection;
 using System.Data;
 using Microsoft.AspNetCore.DataProtection;
+using NpgsqlTypes;
 
 namespace JwtApi.Repositories
 {
@@ -100,7 +101,7 @@ namespace JwtApi.Repositories
             {
                 await _connection.OpenAsync();
 
-                var sql = "INSERT INTO password_entries (user_id, url, name, note, username, password) VALUES (@UserId, @Url, @Name, @Note, @Username, @Password)";
+                var sql = "INSERT INTO password_entries (user_id, url, name, note, username, password) VALUES (@UserId, @Url, @Name, @Note, @Username, @Password);";
                 var encryptedPassword = _protector.Protect(entry.Password ?? "");
 
                 using var command = new NpgsqlCommand(sql, _connection);
@@ -128,23 +129,25 @@ namespace JwtApi.Repositories
             return new ApiResponse(true, "Password entry inserted successfully.");
         }
 
-        public async Task<ActionResult<ApiResponse>> UpdatePasswordEntryAsync(PasswordEntry entry)
+        public async Task<ActionResult<ApiResponse>> UpdatePasswordEntryAsync(UpdatePasswordEntryDTO entry)
         {
             try
             {
                 await _connection.OpenAsync();
-
-                var sql = "UPDATE password_entries SET url = @Url, name = @Name, note = @Note, username = @Username, password = @Password WHERE entry_id = @EntryId";
                 var encryptedPassword = _protector.Protect(entry.Password ?? "");
 
-                using var command = new NpgsqlCommand(sql, _connection);
-                command.Parameters.AddWithValue("@EntryId", entry.EntryId);
-                command.Parameters.AddWithValue("@Url", (object?)entry.Url ?? DBNull.Value);
-                command.Parameters.AddWithValue("@Name", (object?)entry.Name ?? DBNull.Value);
-                command.Parameters.AddWithValue("@Note", (object?)entry.Note ?? DBNull.Value);
-                command.Parameters.AddWithValue("@Username", (object?)entry.Username ?? DBNull.Value);
-                command.Parameters.AddWithValue("@Password", (object?)encryptedPassword ?? DBNull.Value);
+                var sql = @$"
+                    UPDATE password_entries 
+                    SET url = '{((!string.IsNullOrEmpty(entry.Url)) ? entry.Url : "")}', 
+                        name = '{((!string.IsNullOrEmpty(entry.Name)) ? entry.Name : "")}', 
+                        note = '{((!string.IsNullOrEmpty(entry.Note)) ? entry.Note : "")}', 
+                        username = '{((!string.IsNullOrEmpty(entry.Username)) ? entry.Username : "")}', 
+                        password = '{encryptedPassword}',
+                        updated_at = NOW()
+                    WHERE entry_id = '{entry.EntryId}';";
 
+                using var command = new NpgsqlCommand(sql, _connection);
+                
                 await command.ExecuteNonQueryAsync();
                 await _connection.CloseAsync();
             }
@@ -159,7 +162,7 @@ namespace JwtApi.Repositories
                     await _connection.CloseAsync();
                 }
             }
-            return new ApiResponse(true, "Password entry updated successfully.");
+            return new ApiResponse(true, $"Password entry updated successfully.");
         }
     }
 }

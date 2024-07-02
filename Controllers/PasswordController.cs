@@ -36,7 +36,7 @@ namespace JwtApi.Controllers
 
         [Authorize(Roles = "User, Admin")]
         [HttpPost("update")]
-        public async Task<ActionResult<ApiResponse>> UpdatePasswordEntryAsync(PasswordEntry entry)
+        public async Task<ActionResult<ApiResponse>> UpdatePasswordEntryAsync(UpdatePasswordEntryDTO entry)
         {
             var result = await _passwordRepository.UpdatePasswordEntryAsync(entry);
             return Ok(result);

@@ -9,6 +9,6 @@ namespace JwtApi.Repositories
     {
         Task<ActionResult<GetAllPasswordsApiResponse>> GetPasswordEntriesAsync(GetAllPasswordsDTO form);
         Task<ActionResult<ApiResponse>> InsertPasswordEntryAsync(NewPasswordEntryDTO entry);
-        Task<ActionResult<ApiResponse>> UpdatePasswordEntryAsync(PasswordEntry entry);
+        Task<ActionResult<ApiResponse>> UpdatePasswordEntryAsync(UpdatePasswordEntryDTO entry);
     }
 }
