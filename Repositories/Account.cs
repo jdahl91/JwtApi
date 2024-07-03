@@ -173,19 +173,20 @@ namespace JwtApi.Repositories
             return new RegistrationResponse(true, "Password changed.");
         }
 
-        public async Task<ApplicationUser> GetUser(string email)
+        public async Task<ApplicationUser?> GetUser(string email)
         {
             await _connection.OpenAsync();
             using var cmd = new NpgsqlCommand("SELECT * FROM users WHERE email=@Email", _connection);
             cmd.Parameters.AddWithValue("@Email", email);
             using var reader = await cmd.ExecuteReaderAsync();
-            var result = new ApplicationUser();
 
             if (!reader.HasRows)
             {
                 await _connection.CloseAsync();
-                return result;
+                return null;
             }
+            var result = new ApplicationUser();
+
             if (reader.Read())
             {
                 var user = new ApplicationUser
