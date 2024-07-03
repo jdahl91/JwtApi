@@ -53,7 +53,7 @@ try
     {
         options.AddPolicy("AllowBlazorWasmClient", builder =>
         {
-            builder.WithOrigins("https://jdahl91.github.io/PwdMngr", "https://localhost:7282")
+            builder.WithOrigins("https://jdahl91.github.io", "https://localhost:7282")
                 .AllowAnyHeader()
                 .AllowAnyMethod();
         });
