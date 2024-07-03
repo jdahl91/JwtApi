@@ -44,7 +44,7 @@ namespace JwtApi.Controllers
             {
                 expiredAccessToken = authorizationHeader.Substring("Bearer ".Length).Trim();
             }
-            var result = await _account.LogoutAsync(expiredAccessToken!); // dangerous ! here -- may need revisiting
+            var result = await _account.LogoutAsync(expiredAccessToken!);
             return Ok(result);
         }
 
@@ -77,54 +77,6 @@ namespace JwtApi.Controllers
         {
             var result = await _account.ChangePassword(model);
             return Ok(result);
-        }
-
-
-        [AllowAnonymous]
-        [HttpGet("weather")]
-        public ActionResult<WeatherForecast[]> GetWeatherForecast()
-        {
-            var startDate = DateOnly.FromDateTime(DateTime.Now);
-            var summaries = new[] { "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching" };
-            return Ok(Enumerable.Range(1, 5).Select(index => new WeatherForecast
-            {
-                Date = startDate.AddDays(index),
-                TemperatureC = Random.Shared.Next(-20, 55),
-                Summary = summaries[Random.Shared.Next(summaries.Length)]
-            }).ToArray());
-        }
-
-        [Authorize(Roles = "User")]
-        [HttpGet("cats")]
-        public IActionResult GetRandomCats()
-        {
-            var CatNames = new[] { "Whiskers", "Mittens", "Shadow", "Simba", "Nala", "Oscar", "Luna", "Chloe", "Max", "Bella" };
-            var CatBreeds = new[] { "Siamese", "Maine Coon", "Persian", "Ragdoll", "Bengal", "Sphynx", "Abyssinian", "Birman", "Russian Blue", "Scottish Fold" };
-            var randomCats = Enumerable.Range(1, 3).Select(index => new
-            {
-                Name = CatNames[Random.Shared.Next(CatNames.Length)],
-                Age = Random.Shared.Next(1, 15),
-                Breed = CatBreeds[Random.Shared.Next(CatBreeds.Length)]
-            }).ToArray();
-
-            return Ok(randomCats);
-        }
-
-        [Authorize(Roles = "Admin")]
-        [HttpGet("whales")]
-        public IActionResult GetRandomWhales()
-        {
-            var WhaleNames = new[] { "Blue Whale", "Humpback Whale", "Orca", "Sperm Whale", "Beluga Whale", "Gray Whale", "Narwhal", "Bowhead Whale", "Fin Whale", "Minke Whale" };
-            var WhaleSpecies = new[] { "Balaenopteridae", "Delphinidae", "Physeteridae", "Monodontidae", "Eschrichtiidae", "Balaenidae" };
-            var Random = new Random();
-            var randomWhales = Enumerable.Range(1, 3).Select(index => new
-            {
-                Name = WhaleNames[Random.Next(WhaleNames.Length)],
-                Size = Random.Next(10, 30),
-                Species = WhaleSpecies[Random.Next(WhaleSpecies.Length)]
-            }).ToArray();
-
-            return Ok(randomWhales);
         }
     }
 }

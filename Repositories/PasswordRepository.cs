@@ -33,7 +33,7 @@ namespace JwtApi.Repositories
             if (findUser is null)
                 return new GetAllPasswordsApiResponse(false, "Email address does not exist.");
 
-            var passwordEntries = new List<PasswordEntry>();
+            List<PasswordEntry> passwordEntries = new();
             try
             {
                 await _connection.OpenAsync();
@@ -78,19 +78,8 @@ namespace JwtApi.Repositories
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine("Failed to fetch password list.");
-                Console.WriteLine("Failed to fetch password list.");
                 System.Diagnostics.Debug.WriteLine($"Error: {ex}.");
                 Console.WriteLine($"Error: {ex}.");
-
-                //return new GetAllPasswordsApiResponse(false, "Failed to fetch password list.");
-            }
-            finally
-            {
-                if (_connection.State != ConnectionState.Closed)
-                {
-                    await _connection.CloseAsync();
-                }
             }
             return new GetAllPasswordsApiResponse(true, "Success.", passwordEntries);
         }
@@ -101,7 +90,23 @@ namespace JwtApi.Repositories
             {
                 await _connection.OpenAsync();
 
-                var sql = "INSERT INTO password_entries (user_id, url, name, note, username, password) VALUES (@UserId, @Url, @Name, @Note, @Username, @Password);";
+                var sql = @"INSERT INTO password_entries (
+                            user_id, 
+                            url, 
+                            name, 
+                            note, 
+                            username, 
+                            password
+                          ) 
+                          VALUES (
+                            @UserId, 
+                            @Url, 
+                            @Name, 
+                            @Note, 
+                            @Username, 
+                            @Password
+                          );";
+
                 var encryptedPassword = _protector.Protect(entry.Password ?? "");
 
                 using var command = new NpgsqlCommand(sql, _connection);
@@ -118,13 +123,6 @@ namespace JwtApi.Repositories
             catch (Exception ex)
             {
                 return new ApiResponse(false, $"Error inserting password entry: {ex.Message}");
-            }
-            finally
-            {
-                if (_connection.State != ConnectionState.Closed)
-                {
-                    await _connection.CloseAsync();
-                }
             }
             return new ApiResponse(true, "Password entry inserted successfully.");
         }
@@ -154,13 +152,6 @@ namespace JwtApi.Repositories
             catch (Exception ex)
             {
                 return new ApiResponse(false, $"Error updating password entry: {ex.Message}");
-            }
-            finally
-            {
-                if (_connection.State != ConnectionState.Closed)
-                {
-                    await _connection.CloseAsync();
-                }
             }
             return new ApiResponse(true, $"Password entry updated successfully.");
         }

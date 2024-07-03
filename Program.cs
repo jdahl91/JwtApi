@@ -1,4 +1,5 @@
 using JwtApi.Repositories;
+using JwtApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.IdentityModel.Tokens;
@@ -13,8 +14,8 @@ try
     // Add services to the container.
     builder.Services.AddControllers();
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-    builder.Services.AddEndpointsApiExplorer();
-    builder.Services.AddSwaggerGen();
+    //builder.Services.AddEndpointsApiExplorer();
+    //builder.Services.AddSwaggerGen();
     // builder.Configuration.AddEnvironmentVariables();
 
     var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
@@ -22,6 +23,7 @@ try
     var jwtIssuer = Environment.GetEnvironmentVariable("Jwt__Issuer");
     var jwtAudience = Environment.GetEnvironmentVariable("Jwt__Audience");
 
+    //builder.Services.AddLogging();
     builder.Services.AddScoped(_ => new NpgsqlConnection(connectionString));
     builder.Services.AddAuthentication(options =>
     {
@@ -46,6 +48,7 @@ try
         .SetApplicationName("PwdMngrWasm");
     builder.Services.AddScoped<IAccount, Account>();
     builder.Services.AddScoped<IPasswordRepository, PasswordRepository>();
+    //builder.Services.AddHostedService<TokenCleanupService>();
     builder.Services.AddCors(options =>
     {
         options.AddPolicy("AllowBlazorWasmClient", builder =>
@@ -59,11 +62,11 @@ try
     var app = builder.Build();
 
     // Configure the HTTP request pipeline.
-    if (app.Environment.IsDevelopment())
-    {
-        app.UseSwagger();
-        app.UseSwaggerUI();
-    }
+    //if (app.Environment.IsDevelopment())
+    //{
+    //    app.UseSwagger();
+    //    app.UseSwaggerUI();
+    //}
 
     app.UseHttpsRedirection();
     app.UseCors("AllowBlazorWasmClient");

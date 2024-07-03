@@ -121,19 +121,18 @@ namespace JwtApi.Repositories
             return new RegistrationResponse(true, "Logout success.");
         }
 
-        // some hashmap perhaps all refresh tokens are stored and upon logout they are deleted
         public async Task<LoginResponse> ObtainNewAccessToken(string expiredAccessToken, string refreshToken)
         {
             CustomUserClaims customUserClaims = DecryptJwtService.DecryptToken(expiredAccessToken);
             if (customUserClaims is null)
-                return new LoginResponse(false, "Jwt decrypt failed."); // make less informative in production
+                return new LoginResponse(false, "Jwt decrypt failed.");
 
             var refreshTokenFromDb = await GetRefreshTokenFromDb(customUserClaims.Email);
 
             if (refreshTokenFromDb is null || refreshTokenFromDb?.Item2 != refreshToken)
-                return new LoginResponse(false, "Invalid refresh token."); // make less informative in production
+                return new LoginResponse(false, "Invalid refresh token.");
             if (refreshTokenFromDb?.Item3 < DateTime.Now)
-                return new LoginResponse(false, "Refresh token expired."); // make less informative in production
+                return new LoginResponse(false, "Refresh token expired.");
 
             var newJwtToken = GenerateAccessToken(new ApplicationUser()
             {
@@ -174,21 +173,20 @@ namespace JwtApi.Repositories
             return new RegistrationResponse(true, "Password changed.");
         }
 
-        public async Task<ApplicationUser?> GetUser(string email)
+        public async Task<ApplicationUser> GetUser(string email)
         {
             await _connection.OpenAsync();
             using var cmd = new NpgsqlCommand("SELECT * FROM users WHERE email=@Email", _connection);
             cmd.Parameters.AddWithValue("@Email", email);
             using var reader = await cmd.ExecuteReaderAsync();
+            var result = new ApplicationUser();
 
             if (!reader.HasRows)
             {
                 await _connection.CloseAsync();
-                return null;
+                return result;
             }
-
-            var result = new ApplicationUser();
-            while (reader.Read())
+            if (reader.Read())
             {
                 var user = new ApplicationUser
                 {

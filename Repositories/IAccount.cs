@@ -12,6 +12,6 @@ namespace JwtApi.Repositories
         Task<LoginResponse> ObtainNewAccessToken(string expiredAccessToken, string refreshToken);
         Task<RegistrationResponse> ConfirmEmail(string email, string confirmToken);
         Task<RegistrationResponse> ChangePassword(ChangePwdDTO model);
-        Task<ApplicationUser?> GetUser(string email);
+        Task<ApplicationUser> GetUser(string email);
     }
 }
