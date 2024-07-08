@@ -39,9 +39,10 @@ namespace JwtApi.Repositories
 
             var jwtToken = GenerateAccessToken(findUser);
             var refreshToken = GenerateRefreshToken();
+            var userGuid = findUser.Id.ToString();
 
             await InsertRefreshTokenIntoDb(findUser.Email, refreshToken, false);
-            return new LoginResponse(true, "Login success.", jwtToken, refreshToken);
+            return new LoginResponse(true, "Login success.", jwtToken, refreshToken, userGuid);
         }
 
         public async Task<RegistrationResponse> RegisterAsync(RegisterDTO model)
